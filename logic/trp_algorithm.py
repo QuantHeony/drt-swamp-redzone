@@ -227,7 +227,7 @@ class TrpAlgorithm:
             d_is = 0
             for j_idx in self.S_to_P_idx[s]:
                 d_rs += self.DR[r_idx, j_idx]
-                d_is += self.DR[r_idx, j_idx]
+                d_is += self.DR[p_idx, j_idx]
             deviation += math.sqrt(((d_rs/d_r) - (d_is/d_i)) ** 2)
 
         od_pattern_val = 1 / (1 + deviation)
