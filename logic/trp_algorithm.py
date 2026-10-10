@@ -121,6 +121,13 @@ class TrpAlgorithm:
     def calculate_modBIC(self, adjuest_Z):
         return self.n * math.log(adjuest_Z / self.n) + (len(self.red_zone_list) + 2) * math.log(self.n)
 
+    def _is_candidate(self, p_idx):
+        """True if stop p_idx may enter the Red Zone (candidate_zones constraint)."""
+        zones = getattr(self.param, 'candidate_zones', None)
+        if not zones:
+            return True
+        return self.S[p_idx] in zones
+
     def get_SDI(self):
         sdi = np.zeros((self.n, len(self.zone_id_list)))
         self.SDI = sdi
@@ -140,12 +147,15 @@ class TrpAlgorithm:
                 ii = 0
                 for s in range(0, self.SDI.shape[1]):
                     ii += ((np.sum(self.SDI, axis=0)[s] - self.SDI[i, s]) - sub_sd_mean) ** 2
-                i_list.append(z - ii)
+                if self._is_candidate(i):
+                    i_list.append(z - ii)
+                else:
+                    i_list.append(float('-inf'))   # excluded from representative selection
 
             red_zone_candi_idx = i_list.index(max(i_list))
             # red zone이 하나일 경우는 또 다시 채택될수있음 차선 레드존을 잡는다
             while (red_zone_candi_idx in self.red_zone_list):
-                i_list[red_zone_candi_idx] = 0
+                i_list[red_zone_candi_idx] = float('-inf')
                 red_zone_candi_idx = i_list.index(max(i_list))
             self.logger.info(f"* Z : {z} , 감소된 I : {i_list[red_zone_candi_idx]}")
             modBIC = self.calculate_modBIC(i_list[red_zone_candi_idx])
@@ -270,6 +280,8 @@ class TrpAlgorithm:
             for p_idx, p_pk in enumerate(self.P_idx):
                 if self.R[p_idx] == 1:
                     continue
+                if not self._is_candidate(p_idx):
+                    continue   # expansion never enters a non-candidate zone
 
                 cost_value = self.smr_cost_func(r_idx, p_idx)
                 od_value = self.smr_od_pattern_func(r_idx, p_idx)

@@ -35,6 +35,10 @@ reproduce the numbers in the paper.
 
 To reproduce the paper exactly, check out `paper-v1`.
 
+- **C1 (centre-only, Section 5.5.1)** = `candidate_zones=[3]`, α = 0.25. `ParameterConfig.candidate_zones`
+  (default `None` = unconstrained) restricts the candidate stops in both stages, representative
+  selection and similarity expansion, to the listed zones.
+
 ## Repository layout
 
 | Path | Role |
