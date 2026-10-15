@@ -136,7 +136,7 @@ Outputs:
 | `정류_1` | English name |
 | `경도_X_`, `위도_Y_` | Longitude and latitude (WGS84) |
 | `주소_국`, `구분` | Address and type, not used by the algorithm |
-| `수요량` | Not used by the algorithm |
+| 9th column (`2024_09_23` in the example file) | Demand count, not used by the algorithm; columns are read by position |
 | `zone` | Zone id, consecutive integers from 1 |
 
 `data/admin_demand/*.xlsx` holds call records, one row per call.
