@@ -7,3 +7,5 @@ out/
 .venv/
 .idea/
 .vscode/
+
+data_synthetic/

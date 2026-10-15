@@ -5,11 +5,16 @@ operational data used in the paper, so that the pipeline can be run end to end.
 The numbers produced here are NOT the study data and will not reproduce the
 paper's results. They only illustrate the required input format:
 
-  data/station.csv                 stations (cp949, same columns as the original)
-  data/admin_demand/*.xlsx         one file per day of call records
+  <out>/station.csv                stations (cp949, same columns as the original)
+  <out>/admin_demand/*.xlsx        one file per day of call records
+
+By default <out> is data_synthetic/ so that the de-identified example input in data/
+(three real days, see README "Data availability") is left untouched. To run the
+pipeline on the synthetic set, copy data_synthetic/ over data/ or pass the paths to
+DbClass.
 
 Usage:
-    python tools/make_sample_data.py [--days 3] [--calls 250] [--seed 42]
+    python tools/make_sample_data.py [--days 3] [--calls 250] [--seed 42] [--out data_synthetic]
 """
 import argparse
 import csv
@@ -71,20 +76,22 @@ def main():
     ap.add_argument("--days", type=int, default=3)
     ap.add_argument("--calls", type=int, default=250)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--out", default="data_synthetic", help="output folder relative to the repository root")
     a = ap.parse_args()
+    out = a.out if os.path.isabs(a.out) else os.path.join(ROOT, a.out)
     rng = np.random.default_rng(a.seed)
 
     stations = make_stations(rng)
-    os.makedirs(os.path.join(ROOT, "data", "admin_demand"), exist_ok=True)
-    with open(os.path.join(ROOT, "data", "station.csv"), "w", newline="", encoding="cp949") as f:
+    os.makedirs(os.path.join(out, "admin_demand"), exist_ok=True)
+    with open(os.path.join(out, "station.csv"), "w", newline="", encoding="cp949") as f:
         w = csv.writer(f)
         w.writerow(["FID", "NO", "정류장", "정류_1", "경도_X_", "위도_Y_", "주소_국", "구분", "수요량", "zone"])
         w.writerows(stations)
 
     for i, day in enumerate(pd.bdate_range("2024-10-14", periods=a.days)):
         df = make_calls(rng, stations, a.calls, day.strftime("%Y-%m-%d"))
-        df.to_excel(os.path.join(ROOT, "data", "admin_demand", f"sample_{day:%Y%m%d}.xlsx"), index=False)
-    print(f"wrote {len(stations)} stations and {a.days} x {a.calls} sample calls under data/")
+        df.to_excel(os.path.join(out, "admin_demand", f"sample_{day:%Y%m%d}.xlsx"), index=False)
+    print(f"wrote {len(stations)} stations and {a.days} x {a.calls} synthetic calls under {out}")
 
 
 if __name__ == "__main__":
